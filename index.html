@@ -97,8 +97,7 @@ h1{
 }
 </style>
 <header>
-	<h1 id="title">Life</h1>
-	<a href="https://github.com/cheeaun/life">Fork me</a>
+	<h1 id="title">Calendar</h1>	
 </header>
 <div id="life"></div>
 <script>
@@ -119,16 +118,17 @@ h1{
 			}
 		},
 		config: {
-			yearLength: 120, // 120px per year
-			hideAge: false, // Hide age from year axis
+			year: 2016,
+			yearLength: 1200, // 120px per year
+			hideAge: true, // Hide age from year axis
 			customStylesheetURL: null // Custom stylesheet
 		},
-		start: function(){
+		start: function(){			
 			life.loadConfig(function(config){
 				life.config = life.utils.extend(life.config, config);
 				if (life.config.customStylesheetURL) life.injectStylesheet(life.config.customStylesheetURL);
-
-				life.fetch(function(response){
+				
+				life.fetch(function(response){					
 					var data = life.parse(response);
 					var title = life.parseTitle(response);
 					life.render(title, data);
@@ -160,7 +160,7 @@ h1{
 			var xhr = new XMLHttpRequest();
 			xhr.open('GET', 'life.md', true);
 			xhr.onload = function(){
-				if (xhr.status == 200) fn(xhr.responseText);
+				if (xhr.status == 200 || xhr.status == 0) fn(xhr.responseText);
 			};
 			xhr.send();
 		},
@@ -273,25 +273,26 @@ h1{
 				+ '</div>';
 			return '';
 		},
-		renderYears: function(firstYear, lastYear){
+		renderMonths: function(){						
 			var dayLength = life.config.yearLength/12/30;
 			var html = '';
-			var days = 0;
-			var hideAge = life.config.hideAge;
-			for (var y=firstYear, age = 0; y<=lastYear+1; y++, age++){
+			var days = 0;	
+			var daysInMonth = [31,28,31,30,31,30,31,31,30,31,30,31]
+			var months = ['January','Febuary','March','April','May','June','July','August','September','October','November','December','']
+			if(life.config.year % 4 == 0) daysInMonth[1] = 29;		
+			for (var y=0; y<=12; y++){
 				html += '<section class="year" style="left: ' + (days*dayLength).toFixed(2) + 'px">'
-					+ y + (hideAge ? '' : (' (' + age + ')'))
+					+ months[y]
 					+ '</section>';
-				days += (y % 4 == 0) ? 366 : 365;
+				days += daysInMonth[y];
 			}
 			return html;
 		},
 		render: function(title, data){
 			document.title = title;
-			life.$title.innerHTML = title;
-
+			life.$title.innerHTML = title;		
 			// Get the first and last year for the year axis
-			var firstYear = new Date().getFullYear();
+			var firstYear = life.config.year;
 			var lastYear = firstYear;
 			data.forEach(function(d){
 				var time = d.time;
@@ -302,7 +303,7 @@ h1{
 			});
 			life.firstYear = firstYear;
 
-			var html = life.renderYears(firstYear, lastYear);
+			var html = life.renderMonths();
 			data.forEach(function(d){
 				html += life.renderEvent(d);
 			});
@@ -336,7 +337,6 @@ h1{
 			window.scrollTo(x, y);
 		}
 	};
-
 	life.start();
 	slider.init();
 })();
